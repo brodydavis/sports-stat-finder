@@ -1,5 +1,18 @@
 import pandas as pd
 
+# (column, label shown in the table, suffix)
+STATS = [
+    ("gp", "Games played", ""),
+    ("pts", "Points per game", ""),
+    ("reb", "Rebounds per game", ""),
+    ("ast", "Assists per game", ""),
+    ("stl", "Steals per game", ""),
+    ("blk", "Blocks per game", ""),
+    ("fg_pct", "Field goal %", "%"),
+    ("fg3_pct", "3-point %", "%"),
+    ("ft_pct", "Free throw %", "%"),
+]
+
 
 def load_players(path="data/players.csv") -> pd.DataFrame:
     """Load the career stats CSV into a pandas DataFrame."""
@@ -21,30 +34,43 @@ def fmt(value, suffix="") -> str:
     return f"{value}{suffix}"
 
 
-def print_summary(player: pd.Series) -> None:
-    """Print a clean career summary for one player."""
-    title = f"{player['name']} - career stats ({int(player['gp'])} games)"
-    print()
-    print(title)
-    print("-" * len(title))
-    print(f"Points per game:    {fmt(player['pts'])}")
-    print(f"Rebounds per game:  {fmt(player['reb'])}")
-    print(f"Assists per game:   {fmt(player['ast'])}")
-    print(f"Steals per game:    {fmt(player['stl'])}")
-    print(f"Blocks per game:    {fmt(player['blk'])}")
-    print(f"Field goal %:       {fmt(player['fg_pct'], '%')}")
-    print(f"3-point %:          {fmt(player['fg3_pct'], '%')}")
-    print(f"Free throw %:       {fmt(player['ft_pct'], '%')}")
-    print()
+def compare_players(a: pd.Series, b: pd.Series) -> pd.DataFrame:
+    """Build a side-by-side table of two players with an 'Edge' column."""
+    rows = []
+    for key, label, suffix in STATS:
+        x, y = a[key], b[key]
+        if key == "gp":
+            edge = "-"  # more games isn't "better", so no edge
+        elif pd.isna(x) or pd.isna(y):
+            edge = "N/A"
+        elif x == y:
+            edge = "Tie"
+        else:
+            edge = a["name"] if x > y else b["name"]
+        rows.append({
+            "Stat": label,
+            a["name"]: fmt(x, suffix),
+            b["name"]: fmt(y, suffix),
+            "Edge": edge,
+        })
+    return pd.DataFrame(rows)
 
 
 def main():
     df = load_players()
-    player = find_player(df, input("Player name: "))
-    if player is None:
-        print("Player not found.")
-    else:
-        print_summary(player)
+    player_a = find_player(df, input("First player: "))
+    player_b = find_player(df, input("Second player: "))
+
+    if player_a is None or player_b is None:
+        print("Couldn't find one or both players.")
+        return
+    if player_a["name"] == player_b["name"]:
+        print("Please pick two different players.")
+        return
+
+    print()
+    print(compare_players(player_a, player_b).to_string(index=False))
+    print()
 
 
 if __name__ == "__main__":
