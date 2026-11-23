@@ -14,10 +14,38 @@ def find_player(df: pd.DataFrame, name: str) -> pd.Series | None:
     return matches.iloc[0]
 
 
-if __name__ == "__main__":
+def fmt(value, suffix="") -> str:
+    """Format a stat, showing N/A when it wasn't tracked in that player's era."""
+    if pd.isna(value):
+        return "N/A"
+    return f"{value}{suffix}"
+
+
+def print_summary(player: pd.Series) -> None:
+    """Print a clean career summary for one player."""
+    title = f"{player['name']} - career stats ({int(player['gp'])} games)"
+    print()
+    print(title)
+    print("-" * len(title))
+    print(f"Points per game:    {fmt(player['pts'])}")
+    print(f"Rebounds per game:  {fmt(player['reb'])}")
+    print(f"Assists per game:   {fmt(player['ast'])}")
+    print(f"Steals per game:    {fmt(player['stl'])}")
+    print(f"Blocks per game:    {fmt(player['blk'])}")
+    print(f"Field goal %:       {fmt(player['fg_pct'], '%')}")
+    print(f"3-point %:          {fmt(player['fg3_pct'], '%')}")
+    print(f"Free throw %:       {fmt(player['ft_pct'], '%')}")
+    print()
+
+
+def main():
     df = load_players()
     player = find_player(df, input("Player name: "))
     if player is None:
         print("Player not found.")
     else:
-        print(player)
+        print_summary(player)
+
+
+if __name__ == "__main__":
+    main()
