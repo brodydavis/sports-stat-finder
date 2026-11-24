@@ -56,6 +56,31 @@ def compare_players(a: pd.Series, b: pd.Series) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+# stats that can be ranked (3-point % is left out because the dataset has no
+# attempt counts, so players with only a handful of threes would skew the list)
+RANK_STATS = {
+    "pts": "Points per game",
+    "reb": "Rebounds per game",
+    "ast": "Assists per game",
+    "stl": "Steals per game",
+    "blk": "Blocks per game",
+    "fg_pct": "Field goal %",
+    "ft_pct": "Free throw %",
+}
+
+
+def get_rankings(df: pd.DataFrame, stat: str, top_n: int = 10, min_games: int = 500) -> pd.DataFrame:
+    """Return the top players for a stat, among players with at least min_games games."""
+    if stat not in RANK_STATS:
+        raise ValueError(f"Unknown stat '{stat}'")
+    eligible = df[df["gp"] >= min_games].dropna(subset=[stat])
+    top = eligible.sort_values(stat, ascending=False).head(top_n)
+    result = top[["name", "gp", stat]].reset_index(drop=True)
+    result.index += 1
+    result.index.name = "Rank"
+    return result
+
+
 def main():
     df = load_players()
     player_a = find_player(df, input("First player: "))

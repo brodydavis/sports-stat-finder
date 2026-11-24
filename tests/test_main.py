@@ -2,11 +2,12 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 # let the tests import main.py from the src folder
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from main import compare_players, find_player, fmt  # noqa: E402
+from main import compare_players, find_player, fmt, get_rankings  # noqa: E402
 
 
 def make_players() -> pd.DataFrame:
@@ -48,3 +49,23 @@ def test_compare_players_edges():
     assert table.loc["Rebounds per game", "Edge"] == "Tie"
     assert table.loc["Steals per game", "Edge"] == "N/A"   # Beta Two has no steals data
     assert table.loc["Games played", "Edge"] == "-"        # no edge for games played
+
+def test_get_rankings_sorts_descending():
+    ranked = get_rankings(make_players(), "pts", top_n=10, min_games=0)
+    assert list(ranked["name"]) == ["Alpha One", "Beta Two"]
+    assert ranked.index[0] == 1
+
+
+def test_get_rankings_applies_min_games():
+    ranked = get_rankings(make_players(), "pts", min_games=950)
+    assert list(ranked["name"]) == ["Alpha One"]
+
+
+def test_get_rankings_skips_missing_stat():
+    ranked = get_rankings(make_players(), "stl", min_games=0)
+    assert list(ranked["name"]) == ["Alpha One"]
+
+
+def test_get_rankings_rejects_unknown_stat():
+    with pytest.raises(ValueError):
+        get_rankings(make_players(), "bogus")
