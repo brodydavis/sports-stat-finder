@@ -118,7 +118,7 @@ Planned with an [Eisenhower Matrix](Eisenhower%20Matrix.pdf).
 - [x] Search for a player by name
 - [x] Print a clean summary of a player's stats to the terminal (MVP)
 - [x] Side-by-side comparison between two players
-- [ ] Ranking charts of many players
+- [x] Ranking tables of many playeres (top-N by any stat)
 - [ ] Interactive UI
 
 Out of scope: live real-time data, remote hosting, and machine learning predictions.
