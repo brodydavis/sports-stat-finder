@@ -81,8 +81,19 @@ def get_rankings(df: pd.DataFrame, stat: str, top_n: int = 10, min_games: int = 
     return result
 
 
-def main():
-    df = load_players()
+def ask_int(prompt: str, default: int) -> int:
+    """Ask for a positive whole number, falling back to a default."""
+    raw = input(prompt).strip()
+    if not raw:
+        return default
+    if raw.isdigit() and int(raw) > 0:
+        return int(raw)
+    print(f"Invalid number, using {default}.")
+    return default
+
+
+def run_comparison(df: pd.DataFrame) -> None:
+    """Prompt for two players and print the side-by-side comparison."""
     player_a = find_player(df, input("First player: "))
     player_b = find_player(df, input("Second player: "))
 
@@ -96,6 +107,46 @@ def main():
     print()
     print(compare_players(player_a, player_b).to_string(index=False))
     print()
+
+
+def run_rankings(df: pd.DataFrame) -> None:
+    """Prompt for a stat and print the top players for it."""
+    keys = list(RANK_STATS)
+    print("\nStats you can rank:")
+    for i, key in enumerate(keys, 1):
+        print(f"  {i}. {RANK_STATS[key]}")
+
+    choice = input("Pick a stat number: ").strip()
+    if not choice.isdigit() or not 1 <= int(choice) <= len(keys):
+        print("Invalid choice.")
+        return
+    stat = keys[int(choice) - 1]
+
+    top_n = ask_int("How many players? (default 10): ", 10)
+    min_games = ask_int("Minimum games played? (default 500): ", 500)
+
+    ranked = get_rankings(df, stat, top_n=top_n, min_games=min_games)
+    if ranked.empty:
+        print("No players match those filters.")
+        return
+
+    ranked = ranked.rename(columns={"name": "Player", "gp": "Games", stat: RANK_STATS[stat]})
+    print(f"\nTop {len(ranked)} by {RANK_STATS[stat]} (minimum {min_games} games)\n")
+    print(ranked.to_string())
+    print()
+
+
+def main():
+    df = load_players()
+    print("1) Compare two players")
+    print("2) Top player rankings")
+    mode = input("Choose 1 or 2: ").strip()
+    if mode == "1":
+        run_comparison(df)
+    elif mode == "2":
+        run_rankings(df)
+    else:
+        print("Please enter 1 or 2.")
 
 
 if __name__ == "__main__":
