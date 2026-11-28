@@ -125,4 +125,4 @@ Out of scope: live real-time data, remote hosting, and machine learning predicti
 
 ## Demo
 
-[Video walkthrough](PASTE VIDEO LINk HERE)
+[Video walkthrough] https://www.youtube.com/watch?v=8NT_cBM4tUk
